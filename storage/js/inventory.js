@@ -19,8 +19,12 @@ function Inventory(x,y,width,height,items) {
         if (item instanceof itemType) {
         for (i=0;i<this.items.length;i++) {
         if (item == this.items[i].type) {
+            if (this.items[i].type.max == this.items[i].amount) {
+                
+            } else {
             this.items[i].amount += amount;
             return;
+            }
         }
         }
         this.items.push(new Item(item,amount));
@@ -31,13 +35,14 @@ function Inventory(x,y,width,height,items) {
 
     this.removeItem = function(item,amount) {
         if (item instanceof Item) {
-        for (i=0;i<this.items.length;i++) {
+        for (i=this.items.length-1;i>=0;i--) {
             if (item.type == this.items[i].type) {
                 this.items[i].amount -= amount;
                 if (this.items[i].amount <= 0) {
                     this.items.splice(i,1);
                     inventory.equipedItem = "none";
                 }
+                break;
             }
         }
     } else {
@@ -59,9 +64,16 @@ function Inventory(x,y,width,height,items) {
         for (r=0;r<7;r++) {
                 index++;
                 i = index-2;
-                if (i >= 8) {
+                if (i >= 8 ) {
                     i--;
                 }
+                if (i >= 15) {
+                    i--;
+                }
+                if (i >= 22) {
+                    i--;
+                }
+                
                 var x = (23 + 5.777*(r+1) + 64*(r));
                 var y = (125*(c+1))-(45*c);
                 ctx.fillStyle = "#555555";

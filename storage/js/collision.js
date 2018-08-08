@@ -21,6 +21,16 @@ function Collision(x,y,width,height) {
         return false;
     }
 
+    this.isInside = function(other) {
+        if (this.x < other.x + other.width &&
+            this.x + this.width > other.x &&
+            this.y < other.y + other.height &&
+            this.height + this.y > other.y) {
+                return true;
+            }
+            return false;
+    }
+
     this.show = function(x,y,bool) {
         ctx.strokeStyle = "#38ff35";
         if (x==0 && y==0&&!bool) {

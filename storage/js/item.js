@@ -7,7 +7,11 @@ function Item(type,amount) {
     this.image = this.type.image;
     this.name = this.type.name;
     if (amount != Infinity) {
+        if (amount > this.type.max) {
+            this.amount = this.type.max;
+        } else {
     this.amount = parseInt(amount);
+        }
     } else {
         this.amount = amount;
     }

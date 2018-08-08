@@ -1,4 +1,4 @@
-function blockType(image,name,item) {
+function blockType(image,name,item,time) {
     if (!item instanceof itemType) {
         return "Argument 3 is invalid";
     }
@@ -7,4 +7,5 @@ function blockType(image,name,item) {
     this.image = img;
     this.name = name;
     this.item = item;
+    this.time = time;
 }

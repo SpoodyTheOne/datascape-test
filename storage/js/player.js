@@ -34,7 +34,9 @@ function Player(x,y,hp,speed,maxSpeed,drag,dummy,dx,dy) {
         }
 
         this.x += this.dx/2;
-        this.y += this.dy;
+            this.y += this.dy;
+
+        
 
        if (this.dx > 0) {
            if (this.onGround) {
@@ -63,6 +65,7 @@ function Player(x,y,hp,speed,maxSpeed,drag,dummy,dx,dy) {
                     this.dx += m/10
             }
             } else {
+                this.y += m;
                 this.dy += m;
             }
         }
