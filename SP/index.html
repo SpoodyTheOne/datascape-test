@@ -38,6 +38,8 @@
 <script src="../storage/js/inventory.js"></script>
 <script src="../storage/js/itemType.js"></script>
 <script src="../storage/js/blockType.js"></script>
+<!-- code by Stefan Gustavson -->   
+<script src="../storage/js/noise.js"></script>
 
 <script>
     var mouseX = 0;
@@ -55,6 +57,7 @@
             placeBlock();
         } else if (e.which = 1) {
         mouseClicked = true;
+        mineBlock();
         }
     }
 
@@ -66,6 +69,7 @@
         }
     }
 
+
     var showCollision = false;
 
     var player = new Player(-64,-128,100,0.4,5,0.2,false,0,0)
@@ -74,21 +78,26 @@
     var itemTypes = new Array;
     var blockTypes = new Array;
 
+    var genBlocks = new Array;
+
     var blocks = new Array;
 
-    var it_lithium_ore = new itemType("../storage/png/lithium_ore.png",["ore","block"],"Lithium ore");
-    var it_gold_ore = new itemType("../storage/png/gold_ore.png", ["ore","block"],"Gold ore");
-    var it_titanium_ore = new itemType("../storage/png/titanium_ore.png",["ore","block"],"Titanium ore");
-    var it_copper_ore = new itemType("../storage/png/copper_ore.png", ["ore","block"], "Copper ore");
+    var it_lithium_ore = new itemType("../storage/png/lithium_ore.png",["ore","block"],"Lithium ore", 64);
+    var it_gold_ore = new itemType("../storage/png/gold_ore.png", ["ore","block"],"Gold ore", 64);
+    var it_titanium_ore = new itemType("../storage/png/titanium_ore.png",["ore","block"],"Titanium ore", 64);
+    var it_copper_ore = new itemType("../storage/png/copper_ore.png", ["ore","block"], "Copper ore", 64);
     
-    var it_stone = new itemType("../storage/png/stone.png", ["block"], "Stone")
-    var it_grass = new itemType("../storage/png/grass.png",["block"], "Grass");
-    var it_dirt = new itemType("../storage/png/dirt.png",["block"], "Dirt");
+    var it_stone = new itemType("../storage/png/stone.png", ["block"], "Stone", 64)
+    var it_grass = new itemType("../storage/png/grass.png",["block"], "Grass",64);
+    var it_dirt = new itemType("../storage/png/dirt.png",["block"], "Dirt",64);
 
-    var it_container_empty = new itemType("../storage/png/container_empty.png", ["container","item"],"Empty container")
-    var it_container_methane = new itemType("../storage/png/container_methane.png", ["container","full","item"],"Container of Methane")
-    var it_container_water = new itemType("../storage/png/container_water.png", ["container","full","item"], "Container of Water");
+    var it_container_empty = new itemType("../storage/png/container_empty.png", ["container","empty","item"],"Empty container",4)
+    var it_container_methane = new itemType("../storage/png/container_methane.png", ["container","full","item"],"Container of Methane",1)
+    var it_container_water = new itemType("../storage/png/container_water.png", ["container","full","item","placeable"], "Container of Water", 1);
     
+    var it_solarpanel = new itemType("../storage/png/solar_panel.png", ["producer","block", "200w"],"Solar panel",8);
+
+    var it_pickaxe_1 = new itemType("../storage/png/pickaxe_1.png", ["tool","item","5mp"], "Quartz Pickaxe", 1);
 
     itemTypes.push(it_lithium_ore);
     itemTypes.push(it_gold_ore);
@@ -97,31 +106,49 @@
     itemTypes.push(it_container_empty);
     itemTypes.push(it_container_methane);
     itemTypes.push(it_container_water);  
+    itemTypes.push(it_solarpanel);
+    itemTypes.push(it_pickaxe_1);
     itemTypes.push(it_stone);
     itemTypes.push(it_dirt);
     itemTypes.push(it_grass);
 
     
-    var bt_lithium_ore = new blockType("../storage/png/lithium_ore.png", "Lithium ore", it_lithium_ore);
-    var bt_gold_ore = new blockType("../storage/png/gold_ore.png", "Gold ore", it_gold_ore);
-    var bt_titanium_ore = new blockType("../storage/png/titanium_ore.png", "Titanium ore", it_titanium_ore);
+    var bt_lithium_ore = new blockType("../storage/png/lithium_ore.png", "Lithium ore", it_lithium_ore,10000);
+    var bt_gold_ore = new blockType("../storage/png/gold_ore.png", "Gold ore", it_gold_ore,20000);
+    var bt_titanium_ore = new blockType("../storage/png/titanium_ore.png", "Titanium ore", it_titanium_ore,20000);
     var bt_copper_ore = new blockType("../storage/png/copper_ore.png", "Copper ore", it_copper_ore);
+    var bt_methane = new blockType("../storage/png/methan_ore.png", "Methane ore", it_container_methane);
 
-    var bt_stone = new blockType("../storage/png/stone.png", "Stone", it_stone);
-    var bt_grass = new blockType("../storage/png/grass.png", "Grass", it_grass);
-    var bt_dirt = new blockType("../storage/png/dirt.png", "Dirt", it_dirt);
+    var bt_solarpanel = new blockType("../storage/png/solar_panel.png", "Solar panel", it_solarpanel,20000);
+
+    var bt_water = new blockType("../storage/png/water.png", "Water", it_container_water,0);
+
+    var bt_stone = new blockType("../storage/png/stone.png", "Stone", it_stone,10000);
+    var bt_grass = new blockType("../storage/png/grass.png", "Grass", it_grass,2000);
+    var bt_dirt = new blockType("../storage/png/dirt.png", "Dirt", it_dirt,2000);
 
     blockTypes.push(bt_grass);
     blockTypes.push(bt_dirt);
     blockTypes.push(bt_stone);
     blockTypes.push(bt_copper_ore);
+    blockTypes.push(bt_methane);
     blockTypes.push(bt_titanium_ore);
     blockTypes.push(bt_lithium_ore);
     blockTypes.push(bt_gold_ore);
+    blockTypes.push(bt_solarpanel);
+    blockTypes.push(bt_water);
+
+    genBlocks.push(bt_grass);
+    genBlocks.push(bt_dirt);
+    genBlocks.push(bt_stone);
+    genBlocks.push(bt_copper_ore);
+    genBlocks.push(bt_titanium_ore);
+    genBlocks.push(bt_lithium_ore);
+    genBlocks.push(bt_gold_ore);
 
     var inventory = new Inventory(20,20,500,500,[]);
     for (i=0;i<itemTypes.length;i++) {
-inventory.addItem(itemTypes[i],Infinity);
+inventory.addItem(itemTypes[i],999);
 }
 
 worldsize = 100;
@@ -130,23 +157,47 @@ line = 0;
 for (i=0;i<worldsize*worldsize;i++) {
     if (i%worldsize == 0) {
         line++;
+        
     }
     n = i-worldsize*line;
+    noise.seed(Math.random());
 
-    var typ = Math.floor(Math.pow(Math.random()*blockTypes.length, 0.1+line/(worldsize/2)))
     if (line == 1) {
         typ = 0
     } 
     if (line != 1 && typ == 0) {
         typ = 1;
     }
+    if (line >= 2 && line <= worldsize/3) {
+        typ = 1;
+    }
+    if (line >= worldsize/3 && line <= worldsize) {
+        typ = 2;
+    }
 
-     if (typ > blockTypes.length-1) {
-         typ = blockTypes.length-1;
+     if (typ > genBlocks.length-1) {
+         typ = genBlocks.length-1;
      }
 
-    var block = new Block(n,line,blockTypes[typ]);
+    var block = new Block(n,line,genBlocks[typ]);
     blocks.push(block);
+}
+
+for (i=0;i<(worldsize*worldsize);i++) {
+    noise.seed(Math.random());
+
+    var value = Math.floor(Math.abs(noise.simplex2(worldsize,worldsize))*10);
+    noise.seed(Math.random());
+
+    var value2 = Math.floor(Math.abs(noise.simplex2(worldsize,worldsize))*10);
+    
+    if (blocks[value + (value2*worldsize)].type.name != "Dirt") {
+        var id = Math.floor(Math.abs(noise.simplex2(genBlocks.length,genBlocks.length)*10));
+        if (id < 3) {
+            id = 3;
+        }
+        blocks[value + (value2*worldsize)].type = genBlocks[id];
+    }
 }
 
     var left = false;
@@ -158,6 +209,7 @@ for (i=0;i<worldsize*worldsize;i++) {
         if (mouseClicked2) {
             if (inventory.equipedItem != "none") {
                 if (inventory.equipedItem.amount > 0) {
+                    if (inventory.equipedItem.type.types.includes("block") || inventory.equipedItem.type.types.includes("placeable"))
                     for (i=0;i<blockTypes.length;i++) {
                         if (blockTypes[i].item == inventory.equipedItem.type && inventory.equipedItem.amount > 0) {
                             // cursor to ingame position
@@ -174,11 +226,53 @@ for (i=0;i<worldsize*worldsize;i++) {
                             blocks.push(block);
                             
                             inventory.removeItem(inventory.equipedItem,1);
+
+                            if (block.type.name == "Water") {
+                                inventory.addItem(it_container_empty,1);
+                            }
                         }
                     }
                 }
             }
         }
+    }
+
+    function mineBlock() {
+        if (inventory.isOpen) return;
+        time = 5000;
+        x2 = Math.round((mouseX+player.x-canvas.width/2)/64)
+        y2 = Math.round((mouseY+player.y-canvas.height/2)/64)
+
+        for (o=0;o<blocks.length;o++) {
+                                if (blocks[o].x == x2 && blocks[o].y == y2) {
+                                    time = blocks[o].type.time;
+                                }
+                            }
+        if (inventory.equipedItem != "none" && inventory.equipedItem.type.types.includes("1mp")) {
+            time /= 10;
+        } else if (inventory.equipedItem != "none" && inventory.equipedItem.type.types.includes("2mp")) {
+            time /= 30;
+        } else if (inventory.equipedItem != "none" && inventory.equipedItem.type.types.includes("3mp")) {
+            time /= 60;
+        } else if (inventory.equipedItem != "none" && inventory.equipedItem.type.types.includes("4mp")) {
+            time /= 80;
+        } else if (inventory.equipedItem != "none" && inventory.equipedItem.type.types.includes("5mp")) {
+            time /= 99;
+        }
+        setTimeout(function() {
+            if (mouseClicked) {
+                     x = Math.round((mouseX+player.x-canvas.width/2)/64)
+                     y = Math.round((mouseY+player.y-canvas.height/2)/64)
+                     if (x2 == x && y2 == y) {
+                            for (o=0;o<blocks.length;o++) {
+                                if (blocks[o].x == x && blocks[o].y == y) {
+                                    blocks[o].destroy(inventory,false);
+                                    break
+                                }
+                            }
+                        }
+        }
+        }, time)
     }
 
     function translateKeyDown(e) {
@@ -204,11 +298,6 @@ for (i=0;i<worldsize*worldsize;i++) {
         }
         if (e.keyCode == 83) {
             inventory.isOpen = !inventory.isOpen;
-        }
-        if (e.keyCode == 90) {
-            if (blocks.length > 0) {
-            blocks[blocks.length-1].destroy(inventory,false);
-            }
         }
     }
 
@@ -251,14 +340,26 @@ for (i=0;i<worldsize*worldsize;i++) {
                 blocks.splice(i,1);
             }
 
+            if (blocks[i].type.name == "Solar panel") {
+                 
+            } else if (blocks[i].type.name == "Water") {
+
+                if (blocks[i].collision.isInside(playerCollision)) {
+                    player.move(-0.3,true);
+                }
+
+            } else {
+
             if (blocks[i].collision.checkCollision(playerCollision) == "top") {
+                player.dy = 0;
                 player.y = blocks[i].collision.y-64;
                 player.dy = 0;
                 player.onGround = true;
+                player.dy = 0;
         }
             if (blocks[i].collision.checkCollision(playerCollision) == "bottom") {
-                player.y = blocks[i].collision.y+blocks[i].collision.height;
                 player.dy = 0;
+                player.y = blocks[i].collision.y+blocks[i].collision.height;
 
         }
         if (blocks[i].collision.checkCollision(playerCollision) == "left") {
@@ -269,6 +370,7 @@ for (i=0;i<worldsize*worldsize;i++) {
             player.x = blocks[i].collision.x+blocks[i].collision.width;
             player.dx = 0;
         }
+    }
     }
         }
 
