@@ -142,7 +142,6 @@ for (i=0;i<worldsize*worldsize;i++) {
     }
 
      if (typ > blockTypes.length-1) {
-         console.log(typ);
          typ = blockTypes.length-1;
      }
 
@@ -244,7 +243,7 @@ for (i=0;i<worldsize*worldsize;i++) {
         playerCollision.y = player.y;
 
         for (i=0;i<blocks.length;i++) {
-            if (blocks[i].x*64-player.x+canvas.width/2 > canvas.width || blocks[i].x*64-player.x+canvas.width/2 < 0 || blocks[i].y*64-player.y+canvas.height/2 > canvas.height || blocks[i].y*64-player.y+canvas.height/2 < 0) {
+            if (blocks[i].x*64-player.x+canvas.width/2-32 > canvas.width || blocks[i].x*64-player.x+canvas.width/2+32 < 0 || blocks[i].y*64-player.y+canvas.height/2-32 > canvas.height || blocks[i].y*64-player.y+canvas.height/2+32 < 0) {
             } else {
             blocks[i].draw(player.x-canvas.width/2+32,player.y-canvas.height/2+32);
 
