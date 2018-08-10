@@ -27,6 +27,10 @@
     function resize() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+
+        if ((window.outerHeight - window.innerHeight) > 100) {
+        alert('Docked inspector was opened');
+        }
     }
 
     ctx.scale(1,1)
@@ -55,6 +59,7 @@
         if (e.which == 3) {
             mouseClicked2 = true;
             placeBlock();
+            useItem();
         } else if (e.which = 1) {
         mouseClicked = true;
         mineBlock();
@@ -72,7 +77,7 @@
 
     var showCollision = false;
 
-    var player = new Player(-64,-128,100,0.4,5,0.2,false,0,0)
+    var player = new Player(-1024,-128,100,0.4,5,0.2,false,0,0)
     var playerCollision = new Collision(player.x,player.y,64,64);
 
     var itemTypes = new Array;
@@ -82,10 +87,12 @@
 
     var blocks = new Array;
 
-    var it_lithium_ore = new itemType("../storage/png/lithium_ore.png",["ore","block"],"Lithium ore", 64);
-    var it_gold_ore = new itemType("../storage/png/gold_ore.png", ["ore","block"],"Gold ore", 64);
-    var it_titanium_ore = new itemType("../storage/png/titanium_ore.png",["ore","block"],"Titanium ore", 64);
-    var it_copper_ore = new itemType("../storage/png/copper_ore.png", ["ore","block"], "Copper ore", 64);
+    var it_copper = new itemType("../storage/png/copper.png", ["refined"], "Copper ingot", 64, {})
+
+    var it_lithium_ore = new itemType("../storage/png/lithium_ore.png",["ore","block"],"Lithium ore", 64, {});
+    var it_gold_ore = new itemType("../storage/png/gold_ore.png", ["ore","block"],"Gold ore", 64, {});
+    var it_titanium_ore = new itemType("../storage/png/titanium_ore.png",["ore","block"],"Titanium ore", 64, {});
+    var it_copper_ore = new itemType("../storage/png/copper_ore.png", ["ore","block"], "Copper ore", 64, {watts:205975,refined:it_copper});
     
     var it_stone = new itemType("../storage/png/stone.png", ["block"], "Stone", 64)
     var it_grass = new itemType("../storage/png/grass.png",["block"], "Grass",64);
@@ -96,6 +103,7 @@
     var it_container_water = new itemType("../storage/png/container_water.png", ["container","full","item","placeable"], "Container of Water", 1);
     
     var it_solarpanel = new itemType("../storage/png/solar_panel.png", ["producer","block", "200w"],"Solar panel",8);
+    var it_furnace = new itemType("../storage/png/furnace.png",["refiner","block","slow"], "Electric furnace",8);
 
     var it_pickaxe_1 = new itemType("../storage/png/pickaxe_1.png", ["tool","item","5mp"], "Quartz Pickaxe", 1);
 
@@ -107,7 +115,9 @@
     itemTypes.push(it_container_methane);
     itemTypes.push(it_container_water);  
     itemTypes.push(it_solarpanel);
+    itemTypes.push(it_furnace);
     itemTypes.push(it_pickaxe_1);
+    itemTypes.push(it_copper);
     itemTypes.push(it_stone);
     itemTypes.push(it_dirt);
     itemTypes.push(it_grass);
@@ -116,11 +126,12 @@
     var bt_lithium_ore = new blockType("../storage/png/lithium_ore.png", "Lithium ore", it_lithium_ore,10000);
     var bt_gold_ore = new blockType("../storage/png/gold_ore.png", "Gold ore", it_gold_ore,20000);
     var bt_titanium_ore = new blockType("../storage/png/titanium_ore.png", "Titanium ore", it_titanium_ore,20000);
-    var bt_copper_ore = new blockType("../storage/png/copper_ore.png", "Copper ore", it_copper_ore);
-    var bt_methane = new blockType("../storage/png/methan_ore.png", "Methane ore", it_container_methane);
+    var bt_copper_ore = new blockType("../storage/png/copper_ore.png", "Copper ore", it_copper_ore, 10000);
+    var bt_methane = new blockType("../storage/png/methan_ore.png", "Methane ore", it_stone,10000);
 
-    var bt_solarpanel = new blockType("../storage/png/solar_panel.png", "Solar panel", it_solarpanel,20000);
-
+    var bt_solarpanel = new blockType("../storage/png/solar_panel.png", "Solar panel", it_solarpanel,20000,{watts:200});
+    var bt_furnace = new blockType("../storage/png/furnace.png", "Electric Furnace", it_furnace,20000,{itemMax:32,items:[],powered:false});
+    
     var bt_water = new blockType("../storage/png/water.png", "Water", it_container_water,0);
 
     var bt_stone = new blockType("../storage/png/stone.png", "Stone", it_stone,10000);
@@ -136,13 +147,21 @@
     blockTypes.push(bt_lithium_ore);
     blockTypes.push(bt_gold_ore);
     blockTypes.push(bt_solarpanel);
+    blockTypes.push(bt_furnace);
     blockTypes.push(bt_water);
 
     genBlocks.push(bt_grass);
     genBlocks.push(bt_dirt);
+    genBlocks.push(bt_dirt);
+    genBlocks.push(bt_dirt);
+    genBlocks.push(bt_dirt);
+    genBlocks.push(bt_stone);
+    genBlocks.push(bt_stone);
+    genBlocks.push(bt_stone);
     genBlocks.push(bt_stone);
     genBlocks.push(bt_copper_ore);
     genBlocks.push(bt_titanium_ore);
+    genBlocks.push(bt_methane);
     genBlocks.push(bt_lithium_ore);
     genBlocks.push(bt_gold_ore);
 
@@ -151,7 +170,7 @@
 inventory.addItem(itemTypes[i],999);
 }
 
-worldsize = 100;
+worldsize = 64;
 line = 0;
 //generate world
 for (i=0;i<worldsize*worldsize;i++) {
@@ -160,29 +179,21 @@ for (i=0;i<worldsize*worldsize;i++) {
         
     }
     n = i-worldsize*line;
-    noise.seed(Math.random());
 
-    if (line == 1) {
-        typ = 0
-    } 
-    if (line != 1 && typ == 0) {
-        typ = 1;
-    }
-    if (line >= 2 && line <= worldsize/3) {
-        typ = 1;
-    }
-    if (line >= worldsize/3 && line <= worldsize) {
-        typ = 2;
-    }
-
-     if (typ > genBlocks.length-1) {
-         typ = genBlocks.length-1;
-     }
+    var typ = Math.floor(Math.pow(Math.random()*genBlocks.length,line/50));
+    typ += 1;
+if (typ>genBlocks.length-1) {
+    typ=1;
+}
+if (line == 1) {
+    typ = 0;
+}
 
     var block = new Block(n,line,genBlocks[typ]);
     blocks.push(block);
 }
 
+/*
 for (i=0;i<(worldsize*worldsize);i++) {
     noise.seed(Math.random());
 
@@ -199,11 +210,58 @@ for (i=0;i<(worldsize*worldsize);i++) {
         blocks[value + (value2*worldsize)].type = genBlocks[id];
     }
 }
+*/
 
     var left = false;
     var right = false;
     var up = false;
     var down = false;
+
+
+    function useItem() {
+        if (inventory.isOpen) return;
+        if (inventory.equipedItem != "none" && inventory.equipedItem.amount > 0) {
+            x = Math.round((mouseX+player.x-canvas.width/2)/64)
+            y = Math.round((mouseY+player.y-canvas.height/2)/64)
+
+            var playerDist = Math.sqrt(Math.pow (player.x-x*64, 2) + Math.pow (player.y-y*64, 2));
+        if (playerDist > 256) return;
+
+            if (inventory.equipedItem.type.types.includes("ore")) {
+            for (i=0;i<blocks.length;i++) {
+                if (blocks[i].x == x && blocks[i].y == y && blocks[i].type.name == "Electric Furnace") {
+
+                    if (blocks[i].type.stats.items.length < blocks[i].type.stats.itemMax) {
+                    blocks[i].type.stats.items.push(new Item(inventory.equipedItem.type,1));
+                    inventory.removeItem(inventory.equipedItem,1);
+                    break;
+                    }
+                }  
+            }
+        }
+        } else if (inventory.equipedItem == "none") {
+            x = Math.round((mouseX+player.x-canvas.width/2)/64)
+            y = Math.round((mouseY+player.y-canvas.height/2)/64)
+
+            var playerDist = Math.sqrt(Math.pow (player.x-x*64, 2) + Math.pow (player.y-y*64, 2));
+        if (playerDist > 256) return;
+
+            for (i=0;i<blocks.length;i++) {
+                if (blocks[i].type.name == "Electric Furnace" && blocks[i].type.stats.items.length > 0 && blocks[i].x == x && blocks[i].y == y) {
+                    for (k=0;k<blocks[i].type.stats.items.length;k++)
+                    if (blocks[i].type.stats.items[k].type.types.includes("refined")) {
+                        var it = new itemType()
+
+                        it = blocks[i].type.stats.items[k].type;
+                        blocks[i].type.stats.items.splice(k,1);
+                    inventory.addItem(it,1);
+                    return;
+                    }
+                }  
+            
+        }
+        }
+    }
 
     function placeBlock() {
         if (mouseClicked2) {
@@ -216,10 +274,39 @@ for (i=0;i<(worldsize*worldsize);i++) {
                             x = Math.round((mouseX+player.x-canvas.width/2)/64)
                             y = Math.round((mouseY+player.y-canvas.height/2)/64)
 
+                            var playerDist = Math.sqrt(Math.pow (player.x-x*64, 2) + Math.pow (player.y-y*64, 2));
+        if (playerDist > 256) return;
+
+                            var canbeplaced = false;
+
+                            for (o=0;o<blocks.length;o++) {
+                                if (blocks[o].y-1 == y && blocks[o].x == x && blocks[o].type.name != "Water" && blocks[o].type.name != "Solar panel") {
+                                    canbeplaced = true;
+                                    break;
+                                }  
+                                if (blocks[o].y+1 == y && blocks[o].x==x && blocks[o].type.name != "Water" && blocks[o].type.name != "Solar panel") {
+                                    canbeplaced = true;
+                                    break;
+                                }
+                                if (blocks[o].x-1 == x && blocks[o].y == y && blocks[o].type.name != "Water" && blocks[o].type.name != "Solar panel") {
+                                    canbeplaced = true;
+                                    break;
+                                }
+                                if (blocks[o].x+1 == x && blocks[o].y == y && blocks[o].type.name != "Water" && blocks[o].type.name != "Solar panel") {
+                                    canbeplaced = true;
+                                    break;
+                                }
+                            }
+
                             for (o=0;o<blocks.length;o++) {
                                 if (blocks[o].x == x && blocks[o].y == y) {
                                     return;
-                                }
+                                    break;
+                                } 
+                            }
+
+                            if (!canbeplaced) {
+                                return;
                             }
                                 
                             block = new Block(x,y,blockTypes[i]);
@@ -227,21 +314,28 @@ for (i=0;i<(worldsize*worldsize);i++) {
                             
                             inventory.removeItem(inventory.equipedItem,1);
 
-                            if (block.type.name == "Water") {
+                            if (block.type.name == "Water" && inventory.equipedItem.amount != Infinity) {
                                 inventory.addItem(it_container_empty,1);
                             }
+                            break;
                         }
                     }
                 }
             }
         }
     }
-
+    var mineblo = undefined;
     function mineBlock() {
         if (inventory.isOpen) return;
+        if (mineblo != undefined) {
+            clearInterval(mineblo);
+        }
         time = 5000;
         x2 = Math.round((mouseX+player.x-canvas.width/2)/64)
         y2 = Math.round((mouseY+player.y-canvas.height/2)/64)
+
+       var playerDist = Math.sqrt(Math.pow (player.x-x*64, 2) + Math.pow (player.y-y*64, 2));
+        if (playerDist > 256) return;
 
         for (o=0;o<blocks.length;o++) {
                                 if (blocks[o].x == x2 && blocks[o].y == y2) {
@@ -259,7 +353,7 @@ for (i=0;i<(worldsize*worldsize);i++) {
         } else if (inventory.equipedItem != "none" && inventory.equipedItem.type.types.includes("5mp")) {
             time /= 99;
         }
-        setTimeout(function() {
+        var mineblo = setTimeout(function() {
             if (mouseClicked) {
                      x = Math.round((mouseX+player.x-canvas.width/2)/64)
                      y = Math.round((mouseY+player.y-canvas.height/2)/64)
@@ -267,9 +361,13 @@ for (i=0;i<(worldsize*worldsize);i++) {
                             for (o=0;o<blocks.length;o++) {
                                 if (blocks[o].x == x && blocks[o].y == y) {
                                     blocks[o].destroy(inventory,false);
+                                    time = 5000;
                                     break
                                 }
                             }
+                        } else {
+                            time = 5000;
+                            return;
                         }
         }
         }, time)
@@ -310,14 +408,26 @@ for (i=0;i<(worldsize*worldsize);i++) {
         }
     }
 
-    var count = 0;
+    var spo = new Image();
+    var sp =  new Image();
 
+    spo.src = "../storage/png/solar_panel_on.png";
+    sp.src = "../storage/png/solar_panel.png";
+    
     //adjust for html scaling
     ctx.translate(0.5,0.5);
+
     function update() {
         player.image.src = "../storage/png/Player.png";
         if (inventory.equipedItem != "none") {
             player.image.src = "../storage/png/player_empty.png";
+        }
+
+        if (mouseClicked2) {
+            placeBlock();
+        }
+        if (mouseClicked) {
+           // mineBlock();
         }
 
         ctx.clearRect(0,0,100000,100000);
@@ -341,7 +451,19 @@ for (i=0;i<(worldsize*worldsize);i++) {
             }
 
             if (blocks[i].type.name == "Solar panel") {
-                 
+                stop = false;
+                for (k=0;k<blocks.length;k++) {
+                        if (blocks[k].x == blocks[i].x && blocks[k].y < blocks[i].y) {
+                            blocks[i].type.special = false;
+                            blocks[i].type.image = sp;
+                            stop = true;
+                            break;
+                        }
+                }
+                if (!stop) {
+                blocks[i].type.special = true;
+                blocks[i].type.image = spo;
+                }
             } else if (blocks[i].type.name == "Water") {
 
                 if (blocks[i].collision.isInside(playerCollision)) {
@@ -349,6 +471,19 @@ for (i=0;i<(worldsize*worldsize);i++) {
                 }
 
             } else {
+
+                if  (blocks[i].type.name == "Electric Furnace") {
+                for(o=0;o<blocks[i].type.stats.items.length;o++) {              
+                if (blocks[i].type.stats.items.length > 0 && blocks[i].type.special == false) {
+                    if (blocks[i].type.stats.items[o].type.stats.hasOwnProperty("watts")) {
+                        furnaceBitch(i,o);
+                        blocks[i].type.special = true;
+                        break;
+                    }
+                }
+                }
+
+            }
 
             if (blocks[i].collision.checkCollision(playerCollision) == "top") {
                 player.dy = 0;
@@ -374,6 +509,15 @@ for (i=0;i<(worldsize*worldsize);i++) {
     }
         }
 
+                // hover effect
+                x = Math.round((mouseX+player.x-canvas.width/2)/64)
+        y = Math.round((mouseY+player.y-canvas.height/2)/64)
+
+        px = -player.x+canvas.width/2-32;
+        py = -player.y+canvas.height/2-32;
+        ctx.fillStyle = "#4286f420" 
+        ctx.fillRect(px+x*64,py+y*64,64,64);
+
         // movement
         if (right) {
             player.move(player.speed,false);  
@@ -397,6 +541,14 @@ for (i=0;i<(worldsize*worldsize);i++) {
         ctx.fillText("x:" + parseInt(player.x) + " y:" + parseInt(player.y),5,20);
         ctx.fillText("dx: " + player.dx.toFixed(2) + " dy: " + player.dy.toFixed(2), 5,45);
         }
+    }
+
+    function furnaceBitch(i,o) {
+        setTimeout(function() {
+                            blocks[i].type.special = false;
+                            blocks[i].type.stats.items[o] = new Item(blocks[i].type.stats.items[o].type.stats.refined, 1);
+                        }, 5000//blocks[i].type.stats.items[o].type.stats.watts
+                    )
     }
 
     setInterval(update, 16);
