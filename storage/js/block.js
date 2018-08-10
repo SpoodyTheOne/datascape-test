@@ -4,7 +4,7 @@ function Block(x,y,type) {
     }
     this.x = parseInt(x);
     this.y = parseInt(y);
-    this.type = type;
+    this.type = new blockType(type.image.src,type.name,type.item,type.time,type.stats);
     this.destroyed = false;
     this.collision = new Collision(this.x*64,this.y*64,64,64);
 
@@ -12,7 +12,7 @@ function Block(x,y,type) {
         this.collision.height = 40;
     }
     this.draw = function(x,y) {
-        ctx.drawImage(type.image,this.x*64-x,this.y*64-y,64,64);
+        ctx.drawImage(this.type.image,this.x*64-x,this.y*64-y,64,64);
     }
 
     this.destroy = function(inv,bool) {

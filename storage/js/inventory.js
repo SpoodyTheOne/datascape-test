@@ -17,6 +17,9 @@ function Inventory(x,y,width,height,items) {
 
     this.addItem = function(item,amount) {
         if (item instanceof itemType) {
+            if (this.items.length >= 35) {
+                return;
+            }
         for (i=0;i<this.items.length;i++) {
         if (item == this.items[i].type) {
             if (this.items[i].type.max == this.items[i].amount) {
@@ -72,6 +75,9 @@ function Inventory(x,y,width,height,items) {
                 }
                 if (i >= 22) {
                     i--;
+                }
+                if (i >= 29) {
+                    i--
                 }
                 
                 var x = (23 + 5.777*(r+1) + 64*(r));

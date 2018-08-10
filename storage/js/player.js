@@ -36,6 +36,9 @@ function Player(x,y,hp,speed,maxSpeed,drag,dummy,dx,dy) {
         this.x += this.dx/2;
             this.y += this.dy;
 
+           // this.x = Math.round(this.x);
+          //  this.y = Math.round(this.y);
+
         
 
        if (this.dx > 0) {
