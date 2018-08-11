@@ -28,8 +28,8 @@
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        if ((window.outerHeight - window.innerHeight) > 100) {
-        alert('Docked inspector was opened');
+        if ((window.outerWidth - window.innerWidth) > 100) {
+        alert("If you're gonna cheat, why do you even play the game? 🤔🤔🤔🤔");
         }
     }
 
@@ -88,9 +88,10 @@
     var blocks = new Array;
 
     var it_copper = new itemType("../storage/png/copper.png", ["refined"], "Copper ingot", 64, {})
+    var it_gold = new itemType("../storage/png/gold.png", ["refined"], "Gold Bar", 64, {});
 
     var it_lithium_ore = new itemType("../storage/png/lithium_ore.png",["ore","block"],"Lithium ore", 64, {});
-    var it_gold_ore = new itemType("../storage/png/gold_ore.png", ["ore","block"],"Gold ore", 64, {});
+    var it_gold_ore = new itemType("../storage/png/gold_ore.png", ["ore","block"],"Gold ore", 64, {watts:205975,refined:it_gold});
     var it_titanium_ore = new itemType("../storage/png/titanium_ore.png",["ore","block"],"Titanium ore", 64, {});
     var it_copper_ore = new itemType("../storage/png/copper_ore.png", ["ore","block"], "Copper ore", 64, {watts:205975,refined:it_copper});
     
@@ -130,7 +131,7 @@
     var bt_methane = new blockType("../storage/png/methan_ore.png", "Methane ore", it_stone,10000);
 
     var bt_solarpanel = new blockType("../storage/png/solar_panel.png", "Solar panel", it_solarpanel,20000,{watts:200});
-    var bt_furnace = new blockType("../storage/png/furnace.png", "Electric Furnace", it_furnace,20000,{itemMax:32,items:[],powered:false});
+    var bt_furnace = new blockType("../storage/png/furnace.png", "Electric Furnace", it_furnace,20000,{itemMax:32,items:[],furnace:true});
     
     var bt_water = new blockType("../storage/png/water.png", "Water", it_container_water,0);
 
@@ -229,10 +230,10 @@ for (i=0;i<(worldsize*worldsize);i++) {
 
             if (inventory.equipedItem.type.types.includes("ore")) {
             for (i=0;i<blocks.length;i++) {
-                if (blocks[i].x == x && blocks[i].y == y && blocks[i].type.name == "Electric Furnace") {
+                if (blocks[i].x == x && blocks[i].y == y && blocks[i].type.stats.furnace == true) {
 
-                    if (blocks[i].type.stats.items.length < blocks[i].type.stats.itemMax) {
-                    blocks[i].type.stats.items.push(new Item(inventory.equipedItem.type,1));
+                    if (blocks[i].stats.items.length < blocks[i].type.stats.itemMax) {
+                    blocks[i].stats.items.push(new Item(inventory.equipedItem.type,1));
                     inventory.removeItem(inventory.equipedItem,1);
                     break;
                     }
@@ -247,13 +248,13 @@ for (i=0;i<(worldsize*worldsize);i++) {
         if (playerDist > 256) return;
 
             for (i=0;i<blocks.length;i++) {
-                if (blocks[i].type.name == "Electric Furnace" && blocks[i].type.stats.items.length > 0 && blocks[i].x == x && blocks[i].y == y) {
-                    for (k=0;k<blocks[i].type.stats.items.length;k++)
-                    if (blocks[i].type.stats.items[k].type.types.includes("refined")) {
+                if (blocks[i].type.stats.hasOwnProperty("furnace") && blocks[i].stats.items.length > 0 && blocks[i].x == x && blocks[i].y == y) {
+                    for (k=0;k<blocks[i].stats.items.length;k++)
+                    if (blocks[i].stats.items[k].type.types.includes("refined")) {
                         var it = new itemType()
 
-                        it = blocks[i].type.stats.items[k].type;
-                        blocks[i].type.stats.items.splice(k,1);
+                        it = blocks[i].stats.items[k].type;
+                        blocks[i].stats.items.splice(k,1);
                     inventory.addItem(it,1);
                     return;
                     }
@@ -472,16 +473,21 @@ for (i=0;i<(worldsize*worldsize);i++) {
 
             } else {
 
-                if  (blocks[i].type.name == "Electric Furnace") {
-                for(o=0;o<blocks[i].type.stats.items.length;o++) {              
-                if (blocks[i].type.stats.items.length > 0 && blocks[i].type.special == false) {
-                    if (blocks[i].type.stats.items[o].type.stats.hasOwnProperty("watts")) {
+                if  (blocks[i].type.stats.hasOwnProperty("furnace")) {
+                    if (blocks[i].stats.hasOwnProperty("items") || blocks[i].stats.hasOwnProperty("smelting")) {
+                for(o=0;o<blocks[i].stats.items.length;o++) {              
+                if (blocks[i].stats.items.length > 0 && blocks[i].stats.smelting == false) {
+                    if (blocks[i].stats.items[o].type.stats.hasOwnProperty("watts")) {
                         furnaceBitch(i,o);
-                        blocks[i].type.special = true;
+                        blocks[i].stats.smelting = true;
                         break;
                     }
                 }
                 }
+            } else {
+                blocks[i].stats.items = [];
+                blocks[i].stats.smelting = false;
+            }
 
             }
 
@@ -545,8 +551,8 @@ for (i=0;i<(worldsize*worldsize);i++) {
 
     function furnaceBitch(i,o) {
         setTimeout(function() {
-                            blocks[i].type.special = false;
-                            blocks[i].type.stats.items[o] = new Item(blocks[i].type.stats.items[o].type.stats.refined, 1);
+                            blocks[i].stats.smelting = false;
+                            blocks[i].stats.items[o] = new Item(blocks[i].stats.items[o].type.stats.refined, 1);
                         }, 5000//blocks[i].type.stats.items[o].type.stats.watts
                     )
     }
