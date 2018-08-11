@@ -89,10 +89,11 @@
 
     var it_copper = new itemType("../storage/png/copper.png", ["refined"], "Copper ingot", 64, {})
     var it_gold = new itemType("../storage/png/gold.png", ["refined"], "Gold Bar", 64, {});
+    var it_titanium = new itemType("../storage/png/titanium.png",["refined"], "Titanium ingot", 64, {});
 
     var it_lithium_ore = new itemType("../storage/png/lithium_ore.png",["ore","block"],"Lithium ore", 64, {});
     var it_gold_ore = new itemType("../storage/png/gold_ore.png", ["ore","block"],"Gold ore", 64, {watts:205975,refined:it_gold});
-    var it_titanium_ore = new itemType("../storage/png/titanium_ore.png",["ore","block"],"Titanium ore", 64, {});
+    var it_titanium_ore = new itemType("../storage/png/titanium_ore.png",["ore","block"],"Titanium ore", 64, {watts:449616,refined:it_titanium});
     var it_copper_ore = new itemType("../storage/png/copper_ore.png", ["ore","block"], "Copper ore", 64, {watts:205975,refined:it_copper});
     
     var it_stone = new itemType("../storage/png/stone.png", ["block"], "Stone", 64)
@@ -105,6 +106,7 @@
     
     var it_solarpanel = new itemType("../storage/png/solar_panel.png", ["producer","block", "200w"],"Solar panel",8);
     var it_furnace = new itemType("../storage/png/furnace.png",["refiner","block","slow"], "Electric furnace",8);
+    var it_furnace_extreme = new itemType("../storage/png/furnace_extreme.png", ["refiner","block","extreme"], "Extreme furnace", 4);
 
     var it_pickaxe_1 = new itemType("../storage/png/pickaxe_1.png", ["tool","item","5mp"], "Quartz Pickaxe", 1);
 
@@ -117,6 +119,7 @@
     itemTypes.push(it_container_water);  
     itemTypes.push(it_solarpanel);
     itemTypes.push(it_furnace);
+    itemTypes.push(it_furnace_extreme);
     itemTypes.push(it_pickaxe_1);
     itemTypes.push(it_copper);
     itemTypes.push(it_stone);
@@ -131,7 +134,8 @@
     var bt_methane = new blockType("../storage/png/methan_ore.png", "Methane ore", it_stone,10000);
 
     var bt_solarpanel = new blockType("../storage/png/solar_panel.png", "Solar panel", it_solarpanel,20000,{watts:200});
-    var bt_furnace = new blockType("../storage/png/furnace.png", "Electric Furnace", it_furnace,20000,{itemMax:32,items:[],furnace:true});
+    var bt_furnace = new blockType("../storage/png/furnace.png", "Electric Furnace", it_furnace,20000,{itemMax:32,items:[],furnace:"slow"});
+    var bt_furnace_extreme = new blockType("../storage/png/furnace_extreme.png","Extreme Furnace", it_furnace_extreme,20000,{itemMax:128,items:[],furnace:"extreme"});
     
     var bt_water = new blockType("../storage/png/water.png", "Water", it_container_water,0);
 
@@ -149,6 +153,7 @@
     blockTypes.push(bt_gold_ore);
     blockTypes.push(bt_solarpanel);
     blockTypes.push(bt_furnace);
+    blockTypes.push(bt_furnace_extreme);
     blockTypes.push(bt_water);
 
     genBlocks.push(bt_grass);
@@ -230,7 +235,7 @@ for (i=0;i<(worldsize*worldsize);i++) {
 
             if (inventory.equipedItem.type.types.includes("ore")) {
             for (i=0;i<blocks.length;i++) {
-                if (blocks[i].x == x && blocks[i].y == y && blocks[i].type.stats.furnace == true) {
+                if (blocks[i].x == x && blocks[i].y == y && blocks[i].type.stats.furnace != undefined) {
 
                     if (blocks[i].stats.items.length < blocks[i].type.stats.itemMax) {
                     blocks[i].stats.items.push(new Item(inventory.equipedItem.type,1));
@@ -412,6 +417,9 @@ for (i=0;i<(worldsize*worldsize);i++) {
     var spo = new Image();
     var sp =  new Image();
 
+    var ding = new Audio()
+    ding.src="../storage/mp3/ding.mp3";
+
     spo.src = "../storage/png/solar_panel_on.png";
     sp.src = "../storage/png/solar_panel.png";
     
@@ -478,7 +486,17 @@ for (i=0;i<(worldsize*worldsize);i++) {
                 for(o=0;o<blocks[i].stats.items.length;o++) {              
                 if (blocks[i].stats.items.length > 0 && blocks[i].stats.smelting == false) {
                     if (blocks[i].stats.items[o].type.stats.hasOwnProperty("watts")) {
-                        furnaceBitch(i,o);
+                        var time = 1;
+                        if (blocks[i].type.item.types.includes("slow")) {
+                            time = 2;
+                        } else if (blocks[i].type.item.types.includes("medium")) {
+                            time = 5;
+                        } else if (blocks[i].type.item.types.includes("fast")) {
+                            time = 10;
+                        } else if (blocks[i].type.item.types.includes("extreme")) {
+                            time = 50;
+                        }
+                        furnaceBitch(i,o,time);
                         blocks[i].stats.smelting = true;
                         break;
                     }
@@ -536,8 +554,7 @@ for (i=0;i<(worldsize*worldsize);i++) {
 
         if (showCollision) {  
             for (i=0;i<blocks.length;i++) {
-                if (blocks[i].x-player.x+canvas.width/2-32 > canvas.width || blocks[i].x-player.x+canvas.width/2-32 < 0 || blocks[i].y-player.y+canvas.height/2-32 > canvas.height || blocks[i].y-player.y+canvas.height/2-32 < 0) {
-                    
+                if (blocks[i].x*64-player.x+canvas.width/2-32 > canvas.width || blocks[i].x*64-player.x+canvas.width/2+32 < 0 || blocks[i].y*64-player.y+canvas.height/2-32 > canvas.height || blocks[i].y*64-player.y+canvas.height/2+32 < 0) {
                 } else {
                 blocks[i].collision.show(-player.x+canvas.width/2-32,-player.y+canvas.height/2-32,false);
                 }
@@ -549,11 +566,12 @@ for (i=0;i<(worldsize*worldsize);i++) {
         }
     }
 
-    function furnaceBitch(i,o) {
+    function furnaceBitch(i,o,time) {
         setTimeout(function() {
                             blocks[i].stats.smelting = false;
                             blocks[i].stats.items[o] = new Item(blocks[i].stats.items[o].type.stats.refined, 1);
-                        }, 5000//blocks[i].type.stats.items[o].type.stats.watts
+                            ding.play();
+                        }, blocks[i].stats.items[o].type.stats.watts/time
                     )
     }
 
