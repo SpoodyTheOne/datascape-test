@@ -422,9 +422,6 @@ for (i=0;i<(worldsize*worldsize);i++) {
     var spo = new Image();
     var sp =  new Image();
 
-    var ding = new Audio()
-    ding.src="../storage/mp3/ding.mp3";
-
     spo.src = "../storage/png/solar_panel_on.png";
     sp.src = "../storage/png/solar_panel.png";
     
@@ -582,6 +579,12 @@ for (i=0;i<(worldsize*worldsize);i++) {
         setTimeout(function() {
                             blocks[i].stats.smelting = false;
                             blocks[i].stats.items[o] = new Item(blocks[i].stats.items[o].type.stats.refined, 1);
+                            
+                            var playerDist = Math.sqrt(Math.pow (player.x-blocks[i].x*64, 2) + Math.pow (player.y-blocks[i].y*64, 2));
+
+    var ding = new Audio()
+    ding.src="../storage/mp3/tonk.mp3";
+    ding.volume = 1-(playerDist/800);
                             ding.play();
                         }, blocks[i].stats.items[o].type.stats.watts/time
                     )
