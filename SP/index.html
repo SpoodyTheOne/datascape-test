@@ -12,6 +12,10 @@
             position:fixed;
             top:0px;
             left:0px;
+
+            background-image: url("../storage/png/background.png");
+            background-repeat: no-repeat;
+            background-size:cover
         }
     </style>
 </head>
@@ -90,8 +94,9 @@
     var it_copper = new itemType("../storage/png/copper.png", ["refined"], "Copper ingot", 64, {})
     var it_gold = new itemType("../storage/png/gold.png", ["refined"], "Gold Bar", 64, {});
     var it_titanium = new itemType("../storage/png/titanium.png",["refined"], "Titanium ingot", 64, {});
+    var it_lithium = new itemType("../storage/png/lithium.png",["refined"],"Lithium ingot", 64, {});
 
-    var it_lithium_ore = new itemType("../storage/png/lithium_ore.png",["ore","block"],"Lithium ore", 64, {});
+    var it_lithium_ore = new itemType("../storage/png/lithium_ore.png",["ore","block"],"Lithium ore", 64, {watts:311500,refined:it_lithium});
     var it_gold_ore = new itemType("../storage/png/gold_ore.png", ["ore","block"],"Gold ore", 64, {watts:205975,refined:it_gold});
     var it_titanium_ore = new itemType("../storage/png/titanium_ore.png",["ore","block"],"Titanium ore", 64, {watts:449616,refined:it_titanium});
     var it_copper_ore = new itemType("../storage/png/copper_ore.png", ["ore","block"], "Copper ore", 64, {watts:205975,refined:it_copper});
@@ -442,10 +447,6 @@ for (i=0;i<(worldsize*worldsize);i++) {
         ctx.clearRect(0,0,100000,100000);
         ctx.fillStyle="black";
         ctx.lineWidth = 1;
-        player.draw(canvas.width/2-32,canvas.height/2-32);
-        if (inventory.equipedItem instanceof Item) {
-            ctx.drawImage(inventory.equipedItem.image,canvas.width/2-32+12,canvas.height/2-32+12,40,40);    
-        }
         player.move(0.2,true);
         playerCollision.x = player.x;
         playerCollision.y = player.y;
@@ -531,6 +532,17 @@ for (i=0;i<(worldsize*worldsize);i++) {
         }
     }
     }
+        }
+
+        player.draw(canvas.width/2-32,canvas.height/2-32);
+        if (inventory.equipedItem instanceof Item) {
+            ctx.drawImage(inventory.equipedItem.image,canvas.width/2-32+12,canvas.height/2-32+12,40,40); 
+            if (inventory.equipedItem.type.max > 1) {
+            ctx.textAlign= "center";
+            ctx.font="20px Arial"
+            ctx.fillStyle = "white";
+            ctx.fillText(inventory.equipedItem.amount,canvas.width/2,canvas.height/2-50)   
+            }
         }
 
                 // hover effect
