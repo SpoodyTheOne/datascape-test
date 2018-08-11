@@ -36,9 +36,9 @@ function Collision(x,y,width,height) {
         if (x==0 && y==0&&!bool) {
             ctx.strokeRect(this.x,this.y,this.width,this.height);
         } else if (!bool&&x!=0&&y!=0){
-            ctx.strokeRect(this.x+x,this.y+y,width,height);
+            ctx.strokeRect(this.x+x,this.y+y,this.width,this.height);
         } else if (bool&&x!=0&&y!=0) {
-            ctx.strokeRect(x,y,width,height);
+            ctx.strokeRect(this.x,this.y,this.width,this.height);
         }
     }
 }

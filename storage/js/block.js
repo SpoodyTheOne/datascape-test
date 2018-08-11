@@ -13,8 +13,15 @@ function Block(x,y,type,stats) {
     }
     this.collision = new Collision(this.x*64,this.y*64,64,64);
 
-    if (this.type.name == "Water") {
-        this.collision.height = 40;
+    if (type.name == "Water") {
+        this.collision.height = 50;
+        this.collision.y += 14;
+    }
+    if (type.name.toLowerCase() == "electric furnace" || type.name.toLowerCase() == "extreme furnace") {
+        this.collision.height = 48;
+        this.collision.width=44;
+        this.collision.x+=10;
+        this.collision.y+=12;
     }
     this.draw = function(x,y) {
         ctx.drawImage(this.type.image,this.x*64-x,this.y*64-y,64,64);
