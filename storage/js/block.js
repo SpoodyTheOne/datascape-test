@@ -1,4 +1,4 @@
-function Block(x,y,type) {
+function Block(x,y,type,stats) {
     if (!type instanceof blockType) {
         return "Argument 3 is invalid";
     }
@@ -6,6 +6,11 @@ function Block(x,y,type) {
     this.y = parseInt(y);
     this.type = new blockType(type.image.src,type.name,type.item,type.time,type.stats);
     this.destroyed = false;
+    if (typeof stats != Object) {
+        this.stats = {};
+    } else {
+    this.stats = stats;
+    }
     this.collision = new Collision(this.x*64,this.y*64,64,64);
 
     if (this.type.name == "Water") {

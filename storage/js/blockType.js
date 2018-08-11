@@ -9,5 +9,9 @@ function blockType(image,name,item,time,stats) {
     this.item = item;
     this.time = time;
     this.special = false;
-    this.stats = stats;
+    if (stats != null && stats.constructor.name.toLowerCase() === "object") {
+        this.stats = stats;
+    } else {
+        this.stats = {};
+    }
 }
